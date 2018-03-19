@@ -32,6 +32,18 @@ model.s1 = pe.Var(model.i, within = pe.NonNegativeReals)
 model.s2 = pe.Var(model.i, within = pe.NonNegativeReals)
 
 '''Objective function'''
+def obj_rule(model):
+    total_cost = 0
+    for i in model.i:
+        for j in model.j:
+            pairingdays_assigned = LD[j] * model.x[i,j]
+            blockhours_assigned = BH[j] * model.x[i,j]
+            score =  pairingdays_assigned + blockhours_assigned
+            total_score += score
+        total_score = total_score - 100*(model.s1[i] + model.s2[i])
+    obj = total_score
+    return obj  
+model.obj = pe.Objective(rule = obj_rule, sense = pe.maximize)
 
 i: crew member
 j: pairing CP
