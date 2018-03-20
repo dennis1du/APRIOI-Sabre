@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#v1+2
+
 import xlrd
 
 Data_File = xlrd.open_workbook("Matrix_data_sample.xlsx")
@@ -65,14 +65,12 @@ for j in range(1,n+1):
 
 L_j = [[]]
 for j in range(1,n+1):
-    row = [[]]
     s = 0
     for l in range(1,ln+1):
         s += int(Pairing_Layover.cell_value(j,l))
     if s>=1:
-        row.append(1)
-    else: row.append(0)
-    L_j.append(row)
+        L_j.append(1)
+    else: L_j.append(0)
 
 '''Prefrence data reading'''
 # CP1_id: ith crew member prefers dth day to work/off
@@ -155,6 +153,3 @@ if len(CP4_c[3]):
     for i in range(CP4_c[3][1], CP4_c[3][1]+len(CP4_c[3])-1):
         CP4_geq.append(CP4.cell_value(i,3))
 '''
-
-
-#v2
