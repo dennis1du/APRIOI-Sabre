@@ -17,6 +17,14 @@ from Matrix_Data import *
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
+# Model Parameters
+cost_s = 100
+upper_hard = 100
+upper_soft = 95
+lower_soft = 85
+upper_dayoff = 23
+upper_layover = 4
+
 # Global Parameters
 model.bh = BH_j
 model.lh = LH_j
@@ -57,7 +65,7 @@ def obj_rule(model):
             blockhours_assigned = model.bh[j] * model.x[i,j]
             cost =  pairingdays_assigned + blockhours_assigned
             total_cost += cost
-        total_cost = total_cost - 100*(model.s1[i]+model.s2[i])
+        total_cost = total_cost - cost_s*(model.s1[i]+model.s2[i])
     obj = total_cost
     return obj  
 model.obj = pe.Objective(rule = obj_rule, sense = pe.maximize)
@@ -67,28 +75,33 @@ model.obj = pe.Objective(rule = obj_rule, sense = pe.maximize)
 ### for all i (m)
 # block hour - hard
 def block_hard_rule(model, i):
-    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) <= 100
+    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) <= upper_hard
 model.block_hard_rule = pe.Constraint(model.i, rule = block_hard_rule)
 
 # block hour - soft
 
 def block_soft_upper(model, i):
-    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) <= 95 + model.s2[i]
+    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) <= upper_soft + model.s2[i]
 model.block_soft_upper = pe.Constraint(model.i, rule = block_soft_upper)
 
 def block_soft_lower(model, i):
-    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) >= 85 - model.s1[i]
+    return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) >= lower_soft - model.s1[i]
 model.block_soft_lower = pe.Constraint(model.i, rule = block_soft_lower)
 
 # Min Days off in a planning period (Max Work)
 def mindayoff_rule(model, i):
-    return sum((sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1))) for d in range(1,dn+1)) <= 23
+    return sum((sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1))) for d in range(1,dn+1)) <= upper_dayoff
 model.mindayoff_rule = pe.Constraint(model.i, rule = mindayoff_rule)
 
 # Max pairings with layover in a planning period
 def maxlayoverpairing_rule(model, i):
-    return sum ((model.lj[j] * model.x[i,j]) for j in range(1,n+1)) <= 4
+    return sum ((model.lj[j] * model.x[i,j]) for j in range(1,n+1)) <= upper_layover
 model.maxlayoverpairing_rule = pe.Constraint(model.i, rule = maxlayoverpairing_rule)
+
+# overlap constraint
+def overlap_rule(model, i, s):
+    return (model.x[i,store[s][0]] + model.x[i,store[s][1]])  <= 1
+model.overlap_rule = pe.Constraint(model.i, model.s, rule = overlap_rule)
 
 ### for all j (n)
 # we assume now that one pairing can only assigned to one crewmember
@@ -96,15 +109,10 @@ def onetoone_rule(model, j):
     return sum((model.x[i,j]) for i in range(1,m+1)) <= 1
 model.onetoone_rule = pe.Constraint(model.j, rule = onetoone_rule)
 
-# overlap constraint
-def overlap_rule(model, i, s):
-    return (model.x[i,store[s][0]] + model.x[i,store[s][1]])  <= 1
-model.overlap_rule = pe.Constraint(model.i, model.s, rule = overlap_rule)
-
 '''Solve'''
-'''
+
 if __name__ == '__main__':
-    opt= pyomo.opt.SolverFactory("cplex")
+    opt = pyomo.opt.SolverFactory("cplex")
     #optimality_gap = 0.05
     #opt.options["mip_tolerances_mipgap"] = optimality_gap
     #opt.options["mip_strategy_probe"] = 3
@@ -112,4 +120,8 @@ if __name__ == '__main__':
     #opt.options["mip_cuts_gomory"] = 2
     #opt.options["timelimit"] = 1800
     results=opt.solve(model, tee=True, keepfiles=True)
-    results.write()'''
+    results.write()
+    
+    #find nonzero x
+    x = model.x.get_values()
+    x_nonzero = [ key for (key, value) in x.items() if value > .5]

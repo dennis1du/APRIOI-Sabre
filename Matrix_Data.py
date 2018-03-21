@@ -62,7 +62,7 @@ for j in range(1,n+1):
     for l in range(1,ln+1):
         row.append(int(Pairing_Layover.cell_value(j,l)))
     LO_jl.append(row)
-
+## L_j: If the jth pariing has at least 1 lay-over, L_j = 1; o.w., L_j = 0
 L_j = [[]]
 for j in range(1,n+1):
     s = 0
