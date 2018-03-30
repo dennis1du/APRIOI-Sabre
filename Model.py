@@ -18,12 +18,12 @@ model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
 # Model Parameters
-cost_s = 100
-upper_hard = 100
-upper_soft = 95
-lower_soft = 85
+cost_s = 10
+upper_hard = 60
+upper_soft = 50
+lower_soft = 40
 upper_dayoff = 23
-upper_layover = 4
+upper_layover = 3
 
 # Global Parameters
 model.bh = BH_j
@@ -111,17 +111,17 @@ model.onetoone_rule = pe.Constraint(model.j, rule = onetoone_rule)
 
 '''Solve'''
 
+opt = pyomo.opt.SolverFactory("cplex")
+#optimality_gap = 0.05
+#opt.options["mip_tolerances_mipgap"] = optimality_gap
+#opt.options["mip_strategy_probe"] = 3
+#opt.options["mip_strategy_search"] = 2
+#opt.options["mip_cuts_gomory"] = 2
+#opt.options["timelimit"] = 1800
+results=opt.solve(model, tee=True, keepfiles=True)
+x = model.x.get_values()
+x_nonzero = [ key for (key, value) in x.items() if value > .5]
+
 if __name__ == '__main__':
-    opt = pyomo.opt.SolverFactory("cplex")
-    #optimality_gap = 0.05
-    #opt.options["mip_tolerances_mipgap"] = optimality_gap
-    #opt.options["mip_strategy_probe"] = 3
-    #opt.options["mip_strategy_search"] = 2
-    #opt.options["mip_cuts_gomory"] = 2
-    #opt.options["timelimit"] = 1800
-    results=opt.solve(model, tee=True, keepfiles=True)
     results.write()
-    
-    #find nonzero x
-    x = model.x.get_values()
-    x_nonzero = [ key for (key, value) in x.items() if value > .5]
+    print(x_nonzero)
