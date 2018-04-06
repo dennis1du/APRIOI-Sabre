@@ -19,11 +19,13 @@ model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
 # Model Parameters
-cost_s = 100
+c1=0
+c2=1
+c3=0
 upper_hard = 100
 upper_soft = 95
 lower_soft = 85
-upper_dayoff = 23
+upper_dayoff = 24
 upper_layover = 4
 
 # Global Parameters
@@ -44,6 +46,7 @@ model.i = pe.Set(initialize = set(range(1,m+1)))
 model.j = pe.Set(initialize = set(range(1,n+1)))
 #model.l = pe.Set(initialize = set(range(1,ln+1)))
 model.d = pe.Set(initialize = set(range(1,dn+1)))
+model.dd = pe.Set(initialize = set(range(1,dn+1-6)))
 
 store = [[]]
 for g in range(1,n):
@@ -54,6 +57,7 @@ model.s = pe.Set(initialize = set(range(1,len(store))))
 
 # Variables
 model.x = pe.Var(model.i, model.j, within = pe.Binary)
+model.y = pe.Var(model.i, model.d, within = pe.Binary)
 model.s1 = pe.Var(model.i, within = pe.NonNegativeReals)
 model.s2 = pe.Var(model.i, within = pe.NonNegativeReals)
 
@@ -64,13 +68,21 @@ def obj_rule(model):
         for j in model.j:
             pairingdays_assigned = model.ld[j] * model.x[i,j]
             blockhours_assigned = model.bh[j] * model.x[i,j]
-            cost =  pairingdays_assigned + 0*blockhours_assigned
+            cost =  c1*pairingdays_assigned + c2*blockhours_assigned
             total_cost += cost
-        total_cost = total_cost - 0*(model.s1[i]+model.s2[i])
+        total_cost = total_cost - c3*(model.s1[i]+model.s2[i])
     obj = total_cost
     return obj  
 model.obj = pe.Objective(rule = obj_rule, sense = pe.maximize)
 
+##variable constraints
+def y_rule1(model, i, d):
+    return sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1)) <= 10*model.y[i,d]
+model.y_rule1 = pe.Constraint(model.i, model.d, rule = y_rule1)
+
+def y_rule2(model, i, d):
+    return sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1)) >= model.y[i,d]
+model.y_rule2 = pe.Constraint(model.i, model.d, rule = y_rule2)
 ''' Global Constraints'''
 
 ### for all i (m)
@@ -91,7 +103,7 @@ model.block_soft_lower = pe.Constraint(model.i, rule = block_soft_lower)
 
 # Min Days off in a planning period (Max Work)
 def mindayoff_rule(model, i):
-    return sum((sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1))) for d in range(1,dn+1)) <= upper_dayoff
+    return sum( model.y[i,d] for d in range(1,dn+1)) <= upper_dayoff
 model.mindayoff_rule = pe.Constraint(model.i, rule = mindayoff_rule)
 
 # Max pairings with layover in a planning period
@@ -110,9 +122,14 @@ def onetoone_rule(model, j):
     return sum((model.x[i,j]) for i in range(1,m+1)) <= 1
 model.onetoone_rule = pe.Constraint(model.j, rule = onetoone_rule)
 
+# at least 1 day off in consecutive 7 days
+def one_off_day(model, i, d):
+    return sum(model.y[i,d] for d in range(d,d+7)) <= 6
+model.one_off_day = pe.Constraint(model.i, model.dd, rule = one_off_day)
+
 '''Solve'''
 
-opt = pyomo.opt.SolverFactory("cplex")
+opt = pyomo.opt.SolverFactory('cplex')
 #optimality_gap = 0.05
 #opt.options["mip_tolerances_mipgap"] = optimality_gap
 #opt.options["mip_strategy_probe"] = 3
@@ -121,8 +138,9 @@ opt = pyomo.opt.SolverFactory("cplex")
 #opt.options["timelimit"] = 1800
 results=opt.solve(model, tee=True, keepfiles=True)
 x = model.x.get_values()
-x_nonzero = [ key for (key, value) in x.items() if value > .5]
-
+x_nonzero = [ key for (key, value) in x.items() if value >.5]
+y = model.y.get_values()
+y_nonzero = [ key for (key, value) in y.items() if value >.5]
 if __name__ == '__main__':
     results.write()
     print(x_nonzero)
