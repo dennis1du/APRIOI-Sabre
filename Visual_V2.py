@@ -6,8 +6,8 @@ Created on Fri Mar 30 01:19:54 2018
 """
 
 # coding=UTF-8
-from Model_V1 import x_nonzero, PS_j, PR_j, y_nonzero
-from Summary_V1 import df as summary
+from Model_V2 import x_nonzero, PS_j, PR_j, y_nonzero
+from Summary_V2 import df as summary
 import pandas as pd
 import io
 import matplotlib.pyplot as plt

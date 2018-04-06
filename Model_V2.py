@@ -13,7 +13,7 @@ l--ln
 
 import pyomo.environ as pe
 import pyomo.opt
-from Data_V1 import * 
+from Data_V2 import * 
 
 model= pe.ConcreteModel()
 

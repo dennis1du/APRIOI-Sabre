@@ -6,7 +6,7 @@ from datetime import datetime
 from xlrd import xldate_as_tuple
 from math import floor, ceil
 
-Data_File = xlrd.open_workbook("Pairings1.xlsx")
+Data_File = xlrd.open_workbook("Pairings_50.xlsx")
 
 '''Sheets loaded'''
 Main_Sheet = Data_File.sheet_by_index(0)
