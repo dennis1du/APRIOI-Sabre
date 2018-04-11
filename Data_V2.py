@@ -6,7 +6,9 @@ from datetime import datetime
 from xlrd import xldate_as_tuple
 from math import floor, ceil
 
-Data_File = xlrd.open_workbook("Pairings_50.xlsx")
+#Size Setting
+Data_File = xlrd.open_workbook("Pairings_100.xlsx")
+m = 9
 
 '''Sheets loaded'''
 Main_Sheet = Data_File.sheet_by_index(0)
@@ -18,9 +20,36 @@ Main_Sheet = Data_File.sheet_by_index(0)
 
 '''global data reading'''
 # the number of crew memebers/pairings/days/layovers
-m = 5
 n = Main_Sheet.nrows - 1
-dn = 31
+
+# PR_j: the Rest End Time of jth pairing (day)
+PR_j = [[]]
+for j in range(1,n+1):
+    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,11),0)
+    temp2 = str(datetime(*temp1))
+    rt = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
+    rt_new = round(rt.tm_mday+rt.tm_hour/24+rt.tm_min/(60*24),5)
+    PR_j.append(rt_new)
+# PS_j: the Start Time of jth pairing (day)
+PS_j = [[]]
+for j in range(1,n+1):
+    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,9),0)
+    temp2 = str(datetime(*temp1))
+    st = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
+    st_new = round(st.tm_mday+st.tm_hour/24+st.tm_min/(60*24),5)
+    PS_j.append(st_new)
+
+# PE_j: the End Time of jth pairing (day)
+PE_j = [[]]
+for j in range(1,n+1):
+    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,10),0)
+    temp2 = str(datetime(*temp1))
+    et = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
+    et_new = round(et.tm_mday+et.tm_hour/24+et.tm_min/(60*24),5)
+    PE_j.append(et_new)
+
+# the number of crew memebers/pairings/days/layovers
+dn = floor(max(PR_j[1:]))
 #ln = Pairing_Layover.ncols - 1
 
 # LN_j: the number of legs of jth pairing
@@ -43,32 +72,8 @@ BH_j = [[]]
 for j in range(1,n+1):
     BH_j.append(int(Main_Sheet.cell_value(j,8)))
 
-# PS_j: the Start Time of jth pairing (day)
-PS_j = [[]]
-for j in range(1,n+1):
-    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,9),0)
-    temp2 = str(datetime(*temp1))
-    st = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
-    st_new = round(st.tm_mday+st.tm_hour/24+st.tm_min/(60*24),5)
-    PS_j.append(st_new)
 
-# PE_j: the End Time of jth pairing (day)
-PE_j = [[]]
-for j in range(1,n+1):
-    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,10),0)
-    temp2 = str(datetime(*temp1))
-    et = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
-    et_new = round(et.tm_mday+et.tm_hour/24+et.tm_min/(60*24),5)
-    PE_j.append(et_new)
 
-# PR_j: the Rest End Time of jth pairing (day)
-PR_j = [[]]
-for j in range(1,n+1):
-    temp1 = xldate_as_tuple(Main_Sheet.cell_value(j,11),0)
-    temp2 = str(datetime(*temp1))
-    rt = time.strptime((temp2), "%Y-%m-%d %H:%M:%S")
-    rt_new = round(rt.tm_mday+rt.tm_hour/24+rt.tm_min/(60*24),5)
-    PR_j.append(rt_new)
 
 # DO_jd: jth pairing has dth day to work/off
 DO_jd = [[]]
@@ -96,7 +101,6 @@ for j in range(1,n+1):
         L_j.append(1)
     else:
         L_j.append(0)
-
 
 '''Prefrence data reading'''
 '''

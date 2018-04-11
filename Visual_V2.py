@@ -2,11 +2,11 @@
 """
 Created on Fri Mar 30 01:19:54 2018
 
-@author: Dennis
+@author: Enock
 """
 
 # coding=UTF-8
-from Model_V2 import x_nonzero, PS_j, PR_j, y_nonzero
+from Model_V2 import x_nonzero, PS_j, PR_j, y_nonzero, dn
 from Summary_V2 import df as summary
 import pandas as pd
 import io
@@ -14,10 +14,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif']=['SimHei'] 
 plt.rcParams['axes.unicode_minus']=False # to use to display negative sign correctly  
 
-'''
-PS_j = [[],8.2,2.8,6.3,4.9,1.6,2.3,5.3,8.3,8.7,4.8]
-PR_j = [[],10.3,4.7,7.3,6.8,2.7,4.6,8.2,10.3,10.6,6.6]
-'''
+
 
 df = pd.DataFrame(columns=["Crewmember", "Start", "Finish","Pairing"])
 for i,j in x_nonzero:
@@ -43,7 +40,7 @@ ax.set_xlim(0, count+1)
 ax.set_xlabel(x_label)
 ax.set_yticks(range(interval+int(height/2),(height+interval)*len(labels),(height+interval)))
 ax.set_yticklabels(labels)
-ax.set_xticks(range(32))
+ax.set_xticks(range(dn+2))
 #ax.grid(True) # show grids
 ax.xaxis.grid(True) # show x grid
 #ax.yaxis.grid(True) # show y grid

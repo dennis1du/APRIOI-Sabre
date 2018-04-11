@@ -18,6 +18,7 @@ from Data_V2 import *
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
+optimality_gap = 0.1
 # Model Parameters
 c1=0
 c2=1
@@ -27,6 +28,7 @@ upper_soft = 95
 lower_soft = 85
 upper_dayoff = 24
 upper_layover = 4
+
 
 # Global Parameters
 model.bh = BH_j
@@ -77,7 +79,7 @@ model.obj = pe.Objective(rule = obj_rule, sense = pe.maximize)
 
 ##variable constraints
 def y_rule1(model, i, d):
-    return sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1)) <= 10*model.y[i,d]
+    return sum ((model.do[j][d] * model.x[i,j]) for j in range(1,n+1)) <= 5*model.y[i,d]
 model.y_rule1 = pe.Constraint(model.i, model.d, rule = y_rule1)
 
 def y_rule2(model, i, d):
@@ -130,8 +132,7 @@ model.one_off_day = pe.Constraint(model.i, model.dd, rule = one_off_day)
 '''Solve'''
 
 opt = pyomo.opt.SolverFactory('cplex')
-#optimality_gap = 0.05
-#opt.options["mip_tolerances_mipgap"] = optimality_gap
+opt.options["mip_tolerances_mipgap"] = optimality_gap
 #opt.options["mip_strategy_probe"] = 3
 #opt.options["mip_strategy_search"] = 2
 #opt.options["mip_cuts_gomory"] = 2
