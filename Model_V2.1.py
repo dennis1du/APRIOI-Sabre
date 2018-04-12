@@ -18,7 +18,7 @@ from Data_V2 import *
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
-optimality_gap = 0.1
+optimality_gap = 0.01
 # Model Parameters
 c1=0
 c2=1
