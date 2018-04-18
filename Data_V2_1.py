@@ -8,7 +8,7 @@ from math import floor, ceil
 import pandas as pd
 
 # Size Setting
-m = 9
+m = 5
 nt = 100
 data = pd.read_csv("Pairings.csv", index_col=False)
 data1 = data.sample(n=nt, random_state=1)
@@ -34,21 +34,21 @@ n = Main_Sheet.nrows - 1
 # PR_j: the Rest End Time of jth pairing (day)
 PR_j = [[]]
 for j in range(1,n+1):
-    temp = Main_Sheet.cell_value(j,11)+'0'
+    temp = Main_Sheet.cell_value(j,11)+':00'
     rt = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
     rt_new = round(rt.tm_mday+rt.tm_hour/24+rt.tm_min/(60*24),5)
     PR_j.append(rt_new)
 # PS_j: the Start Time of jth pairing (day)
 PS_j = [[]]
 for j in range(1,n+1):
-    temp = Main_Sheet.cell_value(j,9)+'0'
+    temp = Main_Sheet.cell_value(j,9)+':00'
     st = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
     st_new = round(st.tm_mday+st.tm_hour/24+st.tm_min/(60*24),5)
     PS_j.append(st_new)
 # PE_j: the End Time of jth pairing (day)
 PE_j = [[]]
 for j in range(1,n+1):
-    temp = Main_Sheet.cell_value(j,10)+'0'
+    temp = Main_Sheet.cell_value(j,10)+':00'
     et = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
     et_new = round(et.tm_mday+et.tm_hour/24+et.tm_min/(60*24),5)
     PE_j.append(et_new)

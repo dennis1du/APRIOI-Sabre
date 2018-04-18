@@ -6,7 +6,7 @@ Created on Fri Mar 30 01:19:54 2018
 """
 
 # coding=UTF-8
-from Model_V2 import x_nonzero, PS_j, PR_j, y_nonzero, dn
+from Model_V2_1 import x_nonzero, PS_j, PR_j, y_nonzero, dn
 from Summary_V2 import df as summary
 import pandas as pd
 import io

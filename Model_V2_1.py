@@ -13,15 +13,15 @@ l--ln
 
 import pyomo.environ as pe
 import pyomo.opt
-from Data_V2 import * 
+from Data_V2_1 import * 
 
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
-optimality_gap = 0.01
+optimality_gap = 0.02
 # Model Parameters
 c1=0
-c2=1
+c2=[[],1.5,1.4,1.3,1.2,1.1]
 c3=0
 upper_hard = 100
 upper_soft = 95
@@ -70,7 +70,7 @@ def obj_rule(model):
         for j in model.j:
             pairingdays_assigned = model.ld[j] * model.x[i,j]
             blockhours_assigned = model.bh[j] * model.x[i,j]
-            cost =  c1*pairingdays_assigned + c2*blockhours_assigned
+            cost =  c1*pairingdays_assigned + c2[i]*blockhours_assigned
             total_cost += cost
         total_cost = total_cost - c3*(model.s1[i]+model.s2[i])
     obj = total_cost

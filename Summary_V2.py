@@ -4,7 +4,7 @@ Created on Fri Mar 30 00:09:52 2018
 @author: enock
 """
 
-from Model_V2 import *
+from Model_V2_1 import *
 import numpy as np
 import pandas as pd
 ##the percentage of assigned pairings
