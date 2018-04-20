@@ -4,7 +4,7 @@ import xlrd
 import time
 from math import floor, ceil
 import pandas as pd
-'''
+
 # Size Setting
 mt = 10
 nt = 636
@@ -20,7 +20,7 @@ data_pt = data_p.sample(n=nt, random_state=1)
 writer = pd.ExcelWriter("Pairings_test.xlsx")
 data_pt = data_pt.sort_index()
 data_pt.to_excel(writer, index=False)
-writer.save()'''
+writer.save()
 
 '''Data loaded'''
 Data_Crew = xlrd.open_workbook("CrewPrefs_test.xlsx")
@@ -65,10 +65,10 @@ for j in range(1,n+1):
 # the number of crew memebers/pairings/days/layovers
 dn = floor(max(PR_j[1:]))
 
-# LN_j: the number of legs of jth pairing
+'''# LN_j: the number of legs of jth pairing
 LN_j = [[]]
 for j in range(1,n+1):
-    LN_j.append(int(Pairings.cell_value(j,4)))
+    LN_j.append(int(Pairings.cell_value(j,4)))'''
 
 # LNMax_j: the max number of legs of jth pairing/duty period
 LNMax_j = [[]]
