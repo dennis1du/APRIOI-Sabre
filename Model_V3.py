@@ -13,11 +13,11 @@ from Data_V3 import *
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
-optimality_gap = 0.05
+optimality_gap = 0.01
 # Model Parameters
 c1=0
-c2=0
-c3=1
+c2=1
+c3=0
 upper_hard = 100
 upper_soft = 75
 lower_soft = 65
@@ -105,17 +105,13 @@ for i in range(1,m):
         store_cp6_2.append(i)
 #k = list(set(k))
 model.cp6_2 = pe.Set(initialize = set(range(1,len(store_cp6_2))))
-model.d2 = pe.Set(initialize = set(range(4,dn)))
+model.cp6_d = pe.Set(initialize = set(range(4,dn-1)))
 
 store_cp6_3 = [[],3]
-#k = []
 for i in range(1,m):
     if CP6_i[i] == 3:
-        #k.append(CP6_i[i])
         store_cp6_3.append(i)
-#k = list(set(k))
 model.cp6_3 = pe.Set(initialize = set(range(1,len(store_cp6_3))))
-model.d3 = pe.Set(initialize = set(range(4,dn-1)))
 
 # Sets and indices
 model.i = pe.Set(initialize = set(range(1,m+1)))
@@ -235,13 +231,13 @@ def CP5Min(model, cp5min, j):
     return model.x[store_cp5min[cp5min][0],j]*model.lh[j] >= store_cp5min[cp5min][1]*model.x[store_cp5min[cp5min][0],j]
 model.CP5Min = pe.Constraint(model.cp5min, model.j, rule = CP5Min)
 
-# CP6
-def CP6_2(model, cp6_2, d2):
-    return sum(model.y[store_cp6_2[cp6_2], dk] for dk in range(d2, d2+2)) <= 2*(1-model.y[i, d2-1]+model.y[i,d2])
-model.CP6_2 = pe.Constraint(model.cp6_2, model.d2, rule = CP6_2)
-def CP6_3(model, cp6_3, d3):
-    return sum(model.y[store_cp6_3[cp6_3], dk] for dk in range(d3, d3+3)) <= 3*(1-model.y[i, d3-1]+model.y[i,d3])
-model.CP6_3 = pe.Constraint(model.cp6_3, model.d3, rule = CP6_3)
+# Crew Preference for minimum consecutive days off
+def CP6_2(model, cp6_2, cp6_d):
+    return sum(model.y[store_cp6_2[cp6_2], dk] for dk in range(cp6_d, cp6_d+2)) <= 2*(1-model.y[i,cp6_d-1]+model.y[i,cp6_d])
+model.CP6_2 = pe.Constraint(model.cp6_2, model.cp6_d, rule = CP6_2)
+def CP6_3(model, cp6_3, cp6_d):
+    return sum(model.y[store_cp6_3[cp6_3], dk] for dk in range(cp6_d, min(cp6_d+3,dn))) <= min(3,dn-cp6_d)*(1-model.y[i, cp6_d-1]+model.y[i,cp6_d])
+model.CP6_3 = pe.Constraint(model.cp6_3, model.cp6_d, rule = CP6_3)
 
 '''Solve'''
 opt = pyomo.opt.SolverFactory('cplex')

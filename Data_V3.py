@@ -6,8 +6,8 @@ from math import floor, ceil
 import pandas as pd
 
 # Size Setting
-mt = 10
-nt = 636
+mt = 92
+nt = 672
 
 data_c = pd.read_csv("CrewPrefs.csv", index_col=False)
 data_ct = data_c[0:mt]
@@ -34,6 +34,7 @@ Pairings = Data_Pairing.sheet_by_index(0)
 # the number of crew memebers/pairings/days/layovers
 m = CrewPrefs.nrows - 1
 n = Pairings.nrows - 1
+r0 = time.strptime(('4/1/2017 00:00:00'), "%m/%d/%Y %H:%M:%S")
 
 # PL_j: the main layover of jth pairing
 PL_j = [[]]
@@ -43,32 +44,30 @@ for j in range(1, n+1):
 # PR_j: the Rest End Time of jth pairing (day)
 PR_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,11)+':00'
+    temp = Pairings.cell_value(j,11) + ':00'
     rt = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    rt_new = round(rt.tm_mday+rt.tm_hour/24+rt.tm_min/(60*24),5)
+    dr = time.mktime(rt)-time.mktime(r0)
+    rt_new = round(dr/(60*60*24)+1,5)
     PR_j.append(rt_new)
 # PS_j: the Start Time of jth pairing (day)
 PS_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,9)+':00'
+    temp = Pairings.cell_value(j,9) + ':00'
     st = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    st_new = round(st.tm_mday+st.tm_hour/24+st.tm_min/(60*24),5)
+    ds = time.mktime(st)-time.mktime(r0)
+    st_new = round(ds/(60*60*24)+1,5)
     PS_j.append(st_new)
 # PE_j: the End Time of jth pairing (day)
 PE_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,10)+':00'
+    temp = Pairings.cell_value(j,10) + ':00'
     et = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    et_new = round(et.tm_mday+et.tm_hour/24+et.tm_min/(60*24),5)
+    de = time.mktime(et)-time.mktime(r0)
+    et_new = round(de/(60*60*24)+1,5)
     PE_j.append(et_new)
 
 # the number of crew memebers/pairings/days/layovers
-dn = floor(max(PR_j[1:]))
-
-'''# LN_j: the number of legs of jth pairing
-LN_j = [[]]
-for j in range(1,n+1):
-    LN_j.append(int(Pairings.cell_value(j,4)))'''
+dn = floor(max(PE_j[1:]))
 
 # LNMax_j: the max number of legs of jth pairing/duty period
 LNMax_j = [[]]
@@ -100,7 +99,7 @@ DO_jd = [[]]
 for j in range(1,n+1):
     row = [0]*dn
     row.insert(0,[])
-    for d in range(floor(PS_j[j]), ceil(PR_j[j])):
+    for d in range(floor(PS_j[j]), ceil(PE_j[j])):
         row[d] = 1
     DO_jd.append(row)
 
