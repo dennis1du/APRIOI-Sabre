@@ -13,8 +13,8 @@ from Data_V3 import *
 model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
-#optimality_gap = 0.01
 # Model Parameters
+#optimality_gap = 0.01
 c1=0
 c2=1
 c3=0
@@ -99,24 +99,17 @@ for i in range(1,m):
 model.cp5min = pe.Set(initialize = set(range(1,len(store_cp5min))))
 
 store_cp6_2 = [[]]
-#k = []
 for i in range(1,m):
     if CP6_i[i] == 2:
-        #k.append(CP6_i[i])
         store_cp6_2.append(i)
-#k = list(set(k))
 model.cp6_2 = pe.Set(initialize = set(range(1,len(store_cp6_2))))
 model.cp6_d = pe.Set(initialize = set(range(4,dn-1)))
 
 store_cp6_3 = [[],3]
-#k = []
 for i in range(1,m):
     if CP6_i[i] == 3:
-        #k.append(CP6_i[i])
         store_cp6_3.append(i)
-#k = list(set(k))
 model.cp6_3 = pe.Set(initialize = set(range(1,len(store_cp6_3))))
-
 
 # Sets and indices
 model.i = pe.Set(initialize = set(range(1,m+1)))
@@ -156,9 +149,9 @@ model.y_rule2 = pe.Constraint(model.i, model.d, rule = y_rule2)
 ''' Global Constraints'''
 ### for all i (m)
 # block hour - hard
-def block_hard_rule(model, i):
+def block_hard_upper(model, i):
     return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) <= upper_hard
-model.block_hard_rule = pe.Constraint(model.i, rule = block_hard_rule)
+model.block_hard_upper = pe.Constraint(model.i, rule = block_hard_upper)
 
 def block_hard_rule2(model, i):
     return sum ((model.bh[j] * model.x[i,j]) for j in range(1,n+1)) >= lower_hard
@@ -200,30 +193,26 @@ def one_off_day(model, i, d):
 model.one_off_day = pe.Constraint(model.i, model.dd, rule = one_off_day)
 
 ''' Preference Constraints'''
-# CP1 specific day off --> good 
+
+# Crew Preference for day off
 def CP1(model, cp1):
     return model.y[store_cp1[cp1][0], store_cp1[cp1][1]] == 0
 model.CP1 = pe.Constraint(model.cp1, rule = CP1)
 
-'''
-## test
-model.a = pe.Set(initialize = set(range(6,7)))
-model.b = pe.Set(initialize = set(range(1,2)))
-def test_con(model,a,b):
-    return model.x[a,b] == 1
-model.test_con = pe.Constraint(model.a,model.b,rule = test_con)
-'''
-# CP2 at least one specific layover --> good 
+
+# Crew Preference for lay-over
 def CP2(model, cp2):
     return sum(model.x[store_cp2i[cp2],store_cp2j[store_cp2i[cp2]][j]] for j in range(1,len(store_cp2j[store_cp2i[cp2]]))) >= 1
 model.CP2 = pe.Constraint(model.cp2, rule = CP2)
 
 
-# CP3 constraunts of # of legs for all pairing --> good
+# Crew Preference for number of legs/duty period (max)
 def CP3Max(model, cp3max, j):
     return model.x[store_cp3max[cp3max][0],j]*model.lnmax[j] <= store_cp3max[cp3max][1]
 model.CP3Max = pe.Constraint(model.cp3max, model.j, rule = CP3Max)
 
+
+# Crew Preference for number of legs/duty period (min)
 def CP3Min(model, cp3min, j):
     return model.x[store_cp3min[cp3min][0],j]*model.lnmin[j] >= store_cp3min[cp3min][1]*model.x[store_cp3min[cp3min][0],j]
 model.CP3Min = pe.Constraint(model.cp3min, model.j, rule = CP3Min)
@@ -238,25 +227,23 @@ def CP4Min(model, cp4min, j):
     return model.x[store_cp4min[cp4min][0],j]*model.ld[j] >= store_cp4min[cp4min][1]*model.x[store_cp4min[cp4min][0],j]
 model.CP4Min = pe.Constraint(model.cp4min, model.j, rule = CP4Min)
 
-# Crew Preference for pairing length/hour (max) -->good
-def CP5Max(model, cp5max, j):  
+# Crew Preference for pairing length/hour (max)
+def CP5Max(model, cp5max, j):
     return model.x[store_cp5max[cp5max][0],j]*model.lh[j] <= store_cp5max[cp5max][1]
 model.CP5Max = pe.Constraint(model.cp5max, model.j, rule = CP5Max)
 
-# Crew Preference for pairing length/hour (min) --> ???????
+# Crew Preference for pairing length/hour (min)
 def CP5Min(model, cp5min, j):
     return model.x[store_cp5min[cp5min][0],j]*model.lh[j] >= store_cp5min[cp5min][1]*model.x[store_cp5min[cp5min][0],j]
 model.CP5Min = pe.Constraint(model.cp5min, model.j, rule = CP5Min)
 
-# CP6
-def CP6_2(model, cp6_2, d2):
-    return sum(model.y[store_cp6_2[cp6_2], dk] for dk in range(d2, d2+2)) <= 2*(1-model.y[i, d2-1]+model.y[i,d2])
+# Crew Preference for minimum consecutive days off
+def CP6_2(model, cp6_2, cp6_d):
+    return sum(model.y[store_cp6_2[cp6_2], dk] for dk in range(cp6_d, cp6_d+2)) <= 2*(1-model.y[i,cp6_d-1]+model.y[i,cp6_d])
 model.CP6_2 = pe.Constraint(model.cp6_2, model.cp6_d, rule = CP6_2)
-
-def CP6_3(model, cp6_3, d3):
-    return sum(model.y[store_cp6_3[cp6_3], dk] for dk in range(d3, min(d3+3,dn))) <= (min(d3+3,dn)-d3)*(1-model.y[i, d3-1]+model.y[i,d3])
+def CP6_3(model, cp6_3, cp6_d):
+    return sum(model.y[store_cp6_3[cp6_3], dk] for dk in range(cp6_d, min(cp6_d+3,dn))) <= min(3,dn-cp6_d)*(1-model.y[i, cp6_d-1]+model.y[i,cp6_d])
 model.CP6_3 = pe.Constraint(model.cp6_3, model.cp6_d, rule = CP6_3)
-
 
 '''Solve'''
 opt = pyomo.opt.SolverFactory('cplex')
@@ -273,3 +260,11 @@ y_nonzero = [ key for (key, value) in y.items() if value >.5]
 if __name__ == '__main__':
     results.write()
     print(x_nonzero)
+	'''
+	## test
+	model.a = pe.Set(initialize = set(range(6,7)))
+	model.b = pe.Set(initialize = set(range(1,2)))
+	def test_con(model,a,b):
+    	return model.x[a,b] == 1
+	model.test_con = pe.Constraint(model.a,model.b,rule = test_con)
+	'''

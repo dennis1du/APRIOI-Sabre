@@ -4,6 +4,7 @@ import xlrd
 import time
 from math import floor, ceil
 import pandas as pd
+
 '''
 # Size Setting
 mt = 9
@@ -21,7 +22,9 @@ writer = pd.ExcelWriter("Pairings_test.xlsx")
 data_pt = data_pt.sort_index()
 data_pt.to_excel(writer, index=False)
 writer.save()
+<<<<<<< HEAD
 '''
+
 '''Data loaded'''
 Data_Crew = xlrd.open_workbook("CrewPrefs_all.xlsx")
 Data_Pairing = xlrd.open_workbook("Pairings_test.xlsx")
@@ -34,6 +37,7 @@ Pairings = Data_Pairing.sheet_by_index(0)
 # the number of crew memebers/pairings/days/layovers
 m = CrewPrefs.nrows - 1
 n = Pairings.nrows - 1
+r0 = time.strptime(('4/1/2017 00:00:00'), "%m/%d/%Y %H:%M:%S")
 
 # PL_j: the main layover of jth pairing
 PL_j = [[]]
@@ -41,42 +45,32 @@ for j in range(1, n+1):
     PL_j.append(Pairings.cell_value(j,1))
 
 # PR_j: the Rest End Time of jth pairing (day)
-timeArray = time.strptime("2017-04-01 00:00:00", "%Y-%m-%d %H:%M:%S")
-timeStamp = int(time.mktime(timeArray))
 PR_j = [[]]
 for j in range(1,n+1):
-    temp = (Pairings.cell_value(j,11))+':00'
+    temp = Pairings.cell_value(j,11) + ':00'
     rt = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    rt_arry = int(time.mktime(rt))
-    rt_new = round((rt_arry-timeStamp)/(24*60*60),5)
-    rt_new = rt_new + 1
+    dr = time.mktime(rt)-time.mktime(r0)
+    rt_new = round(dr/(60*60*24)+1,5)
     PR_j.append(rt_new)
 # PS_j: the Start Time of jth pairing (day)
 PS_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,9)+':00'
+    temp = Pairings.cell_value(j,9) + ':00'
     st = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    st_arry= int(time.mktime(st))
-    st_new = round((st_arry-timeStamp)/(24*60*60),5)
-    st_new = st_new + 1
+    ds = time.mktime(st)-time.mktime(r0)
+    st_new = round(ds/(60*60*24)+1,5)
     PS_j.append(st_new)
 # PE_j: the End Time of jth pairing (day)
 PE_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,10)+':00'
+    temp = Pairings.cell_value(j,10) + ':00'
     et = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    et_arry= int(time.mktime(et))
-    et_new = round((et_arry-timeStamp)/(24*60*60),5)
-    et_new = et_new + 1
+    de = time.mktime(et)-time.mktime(r0)
+    et_new = round(de/(60*60*24)+1,5)
     PE_j.append(et_new)
 
 # the number of crew memebers/pairings/days/layovers
 dn = floor(max(PE_j[1:]))
-
-# LN_j: the number of legs of jth pairing
-LN_j = [[]]
-for j in range(1,n+1):
-    LN_j.append(int(Pairings.cell_value(j,4)))
 
 # LNMax_j: the max number of legs of jth pairing/duty period
 LNMax_j = [[]]
