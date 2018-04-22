@@ -22,7 +22,6 @@ writer = pd.ExcelWriter("Pairings_test.xlsx")
 data_pt = data_pt.sort_index()
 data_pt.to_excel(writer, index=False)
 writer.save()
-<<<<<<< HEAD
 '''
 
 '''Data loaded'''
