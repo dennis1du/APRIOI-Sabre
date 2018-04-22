@@ -6,8 +6,8 @@ from math import floor, ceil
 import pandas as pd
 '''
 # Size Setting
-mt = 10
-nt = 636
+mt = 9
+nt = 672
 
 data_c = pd.read_csv("CrewPrefs.csv", index_col=False)
 data_ct = data_c[0:mt]
@@ -20,10 +20,10 @@ data_pt = data_p.sample(n=nt, random_state=1)
 writer = pd.ExcelWriter("Pairings_test.xlsx")
 data_pt = data_pt.sort_index()
 data_pt.to_excel(writer, index=False)
-writer.save()'''
-
+writer.save()
+'''
 '''Data loaded'''
-Data_Crew = xlrd.open_workbook("CrewPrefs_test.xlsx")
+Data_Crew = xlrd.open_workbook("CrewPrefs_all.xlsx")
 Data_Pairing = xlrd.open_workbook("Pairings_test.xlsx")
 
 '''Sheets loaded'''
@@ -41,29 +41,37 @@ for j in range(1, n+1):
     PL_j.append(Pairings.cell_value(j,1))
 
 # PR_j: the Rest End Time of jth pairing (day)
+timeArray = time.strptime("2017-04-01 00:00:00", "%Y-%m-%d %H:%M:%S")
+timeStamp = int(time.mktime(timeArray))
 PR_j = [[]]
 for j in range(1,n+1):
-    temp = Pairings.cell_value(j,11)+':00'
+    temp = (Pairings.cell_value(j,11))+':00'
     rt = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    rt_new = round(rt.tm_mday+rt.tm_hour/24+rt.tm_min/(60*24),5)
+    rt_arry = int(time.mktime(rt))
+    rt_new = round((rt_arry-timeStamp)/(24*60*60),5)
+    rt_new = rt_new + 1
     PR_j.append(rt_new)
 # PS_j: the Start Time of jth pairing (day)
 PS_j = [[]]
 for j in range(1,n+1):
     temp = Pairings.cell_value(j,9)+':00'
     st = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    st_new = round(st.tm_mday+st.tm_hour/24+st.tm_min/(60*24),5)
+    st_arry= int(time.mktime(st))
+    st_new = round((st_arry-timeStamp)/(24*60*60),5)
+    st_new = st_new + 1
     PS_j.append(st_new)
 # PE_j: the End Time of jth pairing (day)
 PE_j = [[]]
 for j in range(1,n+1):
     temp = Pairings.cell_value(j,10)+':00'
     et = time.strptime((temp), "%m/%d/%Y %H:%M:%S")
-    et_new = round(et.tm_mday+et.tm_hour/24+et.tm_min/(60*24),5)
+    et_arry= int(time.mktime(et))
+    et_new = round((et_arry-timeStamp)/(24*60*60),5)
+    et_new = et_new + 1
     PE_j.append(et_new)
 
 # the number of crew memebers/pairings/days/layovers
-dn = floor(max(PR_j[1:]))
+dn = floor(max(PE_j[1:]))
 
 # LN_j: the number of legs of jth pairing
 LN_j = [[]]
@@ -100,7 +108,7 @@ DO_jd = [[]]
 for j in range(1,n+1):
     row = [0]*dn
     row.insert(0,[])
-    for d in range(floor(PS_j[j]), ceil(PR_j[j])):
+    for d in range(floor(PS_j[j]), ceil(PE_j[j])):
         row[d] = 1
     DO_jd.append(row)
 
