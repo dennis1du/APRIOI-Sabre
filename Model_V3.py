@@ -14,7 +14,7 @@ model= pe.ConcreteModel()
 
 '''Define parameters, sets & indices, and variables'''
 # Model Parameters
-optimality_gap = 0.01
+#optimality_gap = 0.01
 c1=0
 c2=1
 c3=0
@@ -247,7 +247,7 @@ model.CP6_3 = pe.Constraint(model.cp6_3, model.cp6_d, rule = CP6_3)
 
 '''Solve'''
 opt = pyomo.opt.SolverFactory('cplex')
-opt.options["mip_tolerances_mipgap"] = optimality_gap
+#opt.options["mip_tolerances_mipgap"] = optimality_gap
 #opt.options["mip_strategy_probe"] = 3
 #opt.options["mip_strategy_search"] = 2
 #opt.options["mip_cuts_gomory"] = 2
