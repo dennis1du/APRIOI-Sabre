@@ -5,27 +5,27 @@ import time
 from math import floor, ceil
 import pandas as pd
 
-'''
-# Size Setting
-mt = 9
-nt = 672
+'''Size Setting'''
+mt = 9      ### size of crew members in testing dataset
+nt = 672    ### size of pairings in testing dataset
 
+# create testing dataset of CrewPrefs
 data_c = pd.read_csv("CrewPrefs.csv", index_col=False)
 data_ct = data_c[0:mt]
 writer = pd.ExcelWriter("CrewPrefs_test.xlsx")
 data_ct.to_excel(writer, index=False)
 writer.save()
 
+# create testing dataset of Pairings
 data_p = pd.read_csv("Pairings.csv", index_col=False)
 data_pt = data_p.sample(n=nt, random_state=1)
 writer = pd.ExcelWriter("Pairings_test.xlsx")
 data_pt = data_pt.sort_index()
 data_pt.to_excel(writer, index=False)
 writer.save()
-'''
 
 '''Data loaded'''
-Data_Crew = xlrd.open_workbook("CrewPrefs_all.xlsx")
+Data_Crew = xlrd.open_workbook("CrewPrefs_test.xlsx")
 Data_Pairing = xlrd.open_workbook("Pairings_test.xlsx")
 
 '''Sheets loaded'''
@@ -33,9 +33,10 @@ CrewPrefs = Data_Crew.sheet_by_index(0)
 Pairings = Data_Pairing.sheet_by_index(0)
 
 '''Pairing data reading'''
-# the number of crew memebers/pairings/days/layovers
+# the number of crew memebers & pairings
 m = CrewPrefs.nrows - 1
 n = Pairings.nrows - 1
+# the time stamp of the begining of April
 r0 = time.strptime(('4/1/2017 00:00:00'), "%m/%d/%Y %H:%M:%S")
 
 # PL_j: the main layover of jth pairing
@@ -51,6 +52,7 @@ for j in range(1,n+1):
     dr = time.mktime(rt)-time.mktime(r0)
     rt_new = round(dr/(60*60*24)+1,5)
     PR_j.append(rt_new)
+
 # PS_j: the Start Time of jth pairing (day)
 PS_j = [[]]
 for j in range(1,n+1):
@@ -59,6 +61,7 @@ for j in range(1,n+1):
     ds = time.mktime(st)-time.mktime(r0)
     st_new = round(ds/(60*60*24)+1,5)
     PS_j.append(st_new)
+
 # PE_j: the End Time of jth pairing (day)
 PE_j = [[]]
 for j in range(1,n+1):
@@ -68,7 +71,7 @@ for j in range(1,n+1):
     et_new = round(de/(60*60*24)+1,5)
     PE_j.append(et_new)
 
-# the number of crew memebers/pairings/days/layovers
+# the number of days
 dn = floor(max(PE_j[1:]))
 
 # LNMax_j: the max number of legs of jth pairing/duty period
@@ -115,7 +118,7 @@ for g in range(1,n):
             row[h] = 1
     O_gh.append(row)
 
-# L_j: If the jth pariing has at least 1 lay-over, L_j = 1; o.w., L_j = 0
+# L_j: if the jth pariing has at least 1 lay-over, L_j = 1; o.w., L_j = 0
 L_j = [[]]
 for j in range(1,n+1):
     if Pairings.cell_value(j,1) != '-':
@@ -124,7 +127,7 @@ for j in range(1,n+1):
         L_j.append(0)
 
 '''Prefrence data reading'''
-# CP1_i: ith crew member prefers dth for day off 
+# CP1_i: ith crew member prefers dth day for day off 
 CP1_i = [[]]
 for i in range(1,m+1):
     temp = CrewPrefs.cell_value(i,2)
